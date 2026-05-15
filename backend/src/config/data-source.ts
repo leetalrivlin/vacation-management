@@ -6,7 +6,7 @@ import { VacationRequest } from "../entities/VacationRequest";
 
 dotenv.config();
 
-export const AppDataSource = new DataSource({
+export let AppDataSource = new DataSource({
     type: "postgres",
     host: process.env.DB_HOST,
     port: parseInt(process.env.DB_PORT || "5432", 10),
@@ -19,3 +19,7 @@ export const AppDataSource = new DataSource({
     migrations: [],
     subscribers: [],
 });
+
+export function setDataSource(ds: DataSource) {
+    AppDataSource = ds;
+}
