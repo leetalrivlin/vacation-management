@@ -1,0 +1,42 @@
+### Health check
+GET http://localhost:3000/health
+
+### List users
+GET http://localhost:3000/api/users
+
+### Create a vacation request (Alice = user 1)
+POST http://localhost:3000/api/vacation-requests
+Content-Type: application/json
+
+{
+  "userId": 1,
+  "startDate": "2026-06-01",
+  "endDate": "2026-06-05",
+  "reason": "Summer trip"
+}
+
+### Get Alice's requests
+GET http://localhost:3000/api/vacation-requests/user/1
+
+### Get all requests
+GET http://localhost:3000/api/vacation-requests
+
+### Filter by status
+GET http://localhost:3000/api/vacation-requests?status=Pending
+
+### Approve request #1
+PATCH http://localhost:3000/api/vacation-requests/1/approve
+
+### Reject without comment (should fail with 400)
+PATCH http://localhost:3000/api/vacation-requests/1/reject
+Content-Type: application/json
+
+{}
+
+### Reject with comment (should succeed)
+PATCH http://localhost:3000/api/vacation-requests/2/reject
+Content-Type: application/json
+
+{
+  "comments": "Team is short-staffed that week"
+}
