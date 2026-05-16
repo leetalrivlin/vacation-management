@@ -1,1 +1,12 @@
 @import "tailwindcss";
+
+@theme {
+    --color-brand: #19A689;
+    --color-brand-dark: #138269;
+    --color-brand-light: #8ED3C4;
+    --color-menu: #233646;
+    --color-approve: #18B394;
+    --color-approve-dark: #149077;
+    --color-reject: #ED5565;
+    --color-reject-dark: #D9434F;
+}

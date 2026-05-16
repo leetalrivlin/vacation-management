@@ -31,6 +31,9 @@ export async function getByUser(req: Request, res: Response, next: NextFunction)
     }
 }
 
+const DEFAULT_PAGE_SIZE = 10;
+const MAX_PAGE_SIZE = 100;
+
 export async function getAll(req: Request, res: Response, next: NextFunction) {
     try {
         const rawStatus = req.query.status;
@@ -50,11 +53,44 @@ export async function getAll(req: Request, res: Response, next: NextFunction) {
             status = rawStatus as RequestStatus;
         }
 
-        const requests = await service.getAllRequests(status);
-        res.json(requests);
+        const rawSearch = req.query.search;
+        let search: string | undefined;
+        if (rawSearch !== undefined) {
+            if (typeof rawSearch !== "string") {
+                res.status(400).json({ error: "search must be a single string value" });
+                return;
+            }
+            const trimmed = rawSearch.trim();
+            if (trimmed) search = trimmed;
+        }
+
+        const page = parsePositiveInt(req.query.page, 1);
+        if (page === null) {
+            res.status(400).json({ error: "page must be a positive integer" });
+            return;
+        }
+
+        const pageSize = parsePositiveInt(req.query.pageSize, DEFAULT_PAGE_SIZE);
+        if (pageSize === null || pageSize > MAX_PAGE_SIZE) {
+            res.status(400).json({
+                error: `pageSize must be a positive integer up to ${MAX_PAGE_SIZE}`,
+            });
+            return;
+        }
+
+        const result = await service.getAllRequests({ status, search, page, pageSize });
+        res.json(result);
     } catch (err) {
         handleError(err, res, next);
     }
+}
+
+function parsePositiveInt(value: unknown, fallback: number): number | null {
+    if (value === undefined) return fallback;
+    if (typeof value !== "string") return null;
+    const n = parseInt(value, 10);
+    if (isNaN(n) || n < 1 || String(n) !== value) return null;
+    return n;
 }
 
 export async function approve(req: Request, res: Response, next: NextFunction) {

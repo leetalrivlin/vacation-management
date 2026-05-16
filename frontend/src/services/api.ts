@@ -4,6 +4,8 @@ import type {
     VacationRequest,
     CreateVacationRequestInput,
     RequestStatus,
+    PaginatedResult,
+    GetAllRequestsParams,
 } from "../types";
 
 const api = axios.create({
@@ -31,9 +33,13 @@ export const vacationRequestApi = {
         return response.data;
     },
 
-    getAll: async (status?: RequestStatus): Promise<VacationRequest[]> => {
-        const params = status ? { status } : {};
-        const response = await api.get<VacationRequest[]>("/vacation-requests", { params });
+    getAll: async (
+        params: GetAllRequestsParams = {}
+    ): Promise<PaginatedResult<VacationRequest>> => {
+        const response = await api.get<PaginatedResult<VacationRequest>>(
+            "/vacation-requests",
+            { params }
+        );
         return response.data;
     },
 

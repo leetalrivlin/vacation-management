@@ -1,16 +1,16 @@
 <template>
   <tr>
     <td class="px-3 py-3 border-b border-slate-100">
-      {{ request.user?.name ?? `User #${request.userId}` }}
+      {{ displayName }}
     </td>
     <td class="px-3 py-3 border-b border-slate-100">
       {{ formatDate(request.createdAt) }}
     </td>
     <td class="px-3 py-3 border-b border-slate-100">
-      {{ request.startDate }}
+      {{ formatDate(request.startDate) }}
     </td>
     <td class="px-3 py-3 border-b border-slate-100">
-      {{ request.endDate }}
+      {{ formatDate(request.endDate) }}
     </td>
     <td class="px-3 py-3 border-b border-slate-100">
       {{ request.reason || "—" }}
@@ -27,19 +27,21 @@
       <div v-if="isPending" class="flex gap-2">
         <button
             type="button"
-            class="px-3 py-1 rounded bg-green-600 text-white text-sm hover:bg-green-700 cursor-pointer disabled:bg-green-300 disabled:cursor-not-allowed"
+            class="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-approve text-white text-sm hover:bg-approve-dark cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             :disabled="actionInProgress"
             @click="$emit('approve', request.id)"
         >
-          Approve
+          <Check class="w-4 h-4" :stroke-width="2.5" />
+          <span>Approve</span>
         </button>
         <button
             type="button"
-            class="px-3 py-1 rounded bg-red-600 text-white text-sm hover:bg-red-700 cursor-pointer disabled:bg-red-300 disabled:cursor-not-allowed"
+            class="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-reject text-white text-sm hover:bg-reject-dark cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             :disabled="actionInProgress"
             @click="$emit('reject', request.id)"
         >
-          Reject
+          <X class="w-4 h-4" :stroke-width="2.5" />
+          <span>Reject</span>
         </button>
       </div>
       <span v-else class="text-slate-400 text-sm">—</span>
@@ -49,6 +51,7 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
+import { Check, X } from "@lucide/vue";
 import { RequestStatus, type VacationRequest } from "../types";
 
 const props = defineProps<{
@@ -63,8 +66,21 @@ defineEmits<{
 
 const isPending = computed(() => props.request.status === RequestStatus.PENDING);
 
+const displayName = computed(() => {
+  const raw = props.request.user?.name;
+  if (!raw) return `User #${props.request.userId}`;
+  return raw.replace(/\s*\([^)]*\)\s*$/, "").trim();
+});
+
 function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString();
+  const dateOnly = /^\d{4}-\d{2}-\d{2}$/.test(dateString)
+      ? dateString + "T00:00:00"
+      : dateString;
+  return new Date(dateOnly).toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
 }
 
 function statusClasses(status: RequestStatus): string {

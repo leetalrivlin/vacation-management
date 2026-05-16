@@ -49,10 +49,10 @@
             {{ formatDate(request.createdAt) }}
           </td>
           <td class="px-3 py-2 border-b border-slate-100">
-            {{ request.startDate }}
+            {{ formatDate(request.startDate) }}
           </td>
           <td class="px-3 py-2 border-b border-slate-100">
-            {{ request.endDate }}
+            {{ formatDate(request.endDate) }}
           </td>
           <td class="px-3 py-2 border-b border-slate-100">
             {{ request.reason || "—" }}
@@ -96,7 +96,14 @@ async function loadRequests() {
 }
 
 function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString();
+  const dateOnly = /^\d{4}-\d{2}-\d{2}$/.test(dateString)
+      ? dateString + "T00:00:00"
+      : dateString;
+  return new Date(dateOnly).toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
 }
 
 function statusClasses(status: RequestStatus): string {

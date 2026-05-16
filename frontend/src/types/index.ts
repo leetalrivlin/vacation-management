@@ -35,3 +35,18 @@ export interface CreateVacationRequestInput {
     endDate: string;
     reason?: string;
 }
+
+export interface PaginatedResult<T> {
+    items: T[];
+    total: number;
+    page: number;
+    pageSize: number;
+    totalPages: number;
+}
+
+export interface GetAllRequestsParams {
+    status?: RequestStatus;
+    search?: string;
+    page?: number;
+    pageSize?: number;
+}

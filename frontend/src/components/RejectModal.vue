@@ -16,7 +16,7 @@
           v-model="comment"
           rows="4"
           placeholder="e.g., Team is short-staffed during this period"
-          class="w-full px-3 py-2 border border-slate-300 rounded text-base font-sans focus:outline-none focus:border-slate-900 mb-2"
+          class="w-full px-3 py-2 border border-slate-300 rounded text-base font-sans focus:outline-none focus:border-brand mb-2"
           ref="textareaRef"
       />
 

@@ -140,10 +140,29 @@ describe("GET /api/vacation-requests", () => {
         });
     });
 
-    it("returns all requests", async () => {
+    it("returns paginated requests", async () => {
         const response = await request(app).get("/api/vacation-requests");
         expect(response.status).toBe(200);
-        expect(response.body).toHaveLength(2);
+        expect(response.body.items).toHaveLength(2);
+        expect(response.body.total).toBe(2);
+        expect(response.body.page).toBe(1);
+        expect(response.body.totalPages).toBe(1);
+    });
+
+    it("paginates with page and pageSize", async () => {
+        const first = await request(app).get(
+            "/api/vacation-requests?page=1&pageSize=1"
+        );
+        expect(first.status).toBe(200);
+        expect(first.body.items).toHaveLength(1);
+        expect(first.body.total).toBe(2);
+        expect(first.body.totalPages).toBe(2);
+
+        const second = await request(app).get(
+            "/api/vacation-requests?page=2&pageSize=1"
+        );
+        expect(second.body.items).toHaveLength(1);
+        expect(second.body.items[0].id).not.toBe(first.body.items[0].id);
     });
 
     it("filters by status", async () => {
@@ -151,8 +170,24 @@ describe("GET /api/vacation-requests", () => {
             "/api/vacation-requests?status=Pending"
         );
         expect(response.status).toBe(200);
-        expect(response.body).toHaveLength(2);
-        expect(response.body.every((r: any) => r.status === "Pending")).toBe(true);
+        expect(response.body.items).toHaveLength(2);
+        expect(response.body.items.every((r: any) => r.status === "Pending")).toBe(true);
+    });
+
+    it("searches by user name, reason, or comments", async () => {
+        await request(app).post("/api/vacation-requests").send({
+            userId: requester.id,
+            startDate: "2026-08-01",
+            endDate: "2026-08-05",
+            reason: "Wedding anniversary trip",
+        });
+
+        const response = await request(app).get(
+            "/api/vacation-requests?search=anniversary"
+        );
+        expect(response.status).toBe(200);
+        expect(response.body.items).toHaveLength(1);
+        expect(response.body.items[0].reason).toContain("anniversary");
     });
 
     it("rejects an invalid status filter", async () => {
@@ -161,6 +196,11 @@ describe("GET /api/vacation-requests", () => {
         );
         expect(response.status).toBe(400);
         expect(response.body.error).toContain("Invalid status");
+    });
+
+    it("rejects an invalid page parameter", async () => {
+        const response = await request(app).get("/api/vacation-requests?page=0");
+        expect(response.status).toBe(400);
     });
 });
 

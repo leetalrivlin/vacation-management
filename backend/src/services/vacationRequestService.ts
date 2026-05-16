@@ -39,14 +39,53 @@ export async function getRequestsByUser(userId: number): Promise<VacationRequest
     });
 }
 
+export interface GetAllRequestsOptions {
+    status?: RequestStatus;
+    search?: string;
+    page: number;
+    pageSize: number;
+}
+
+export interface PaginatedRequests {
+    items: VacationRequest[];
+    total: number;
+    page: number;
+    pageSize: number;
+    totalPages: number;
+}
+
 export async function getAllRequests(
-    status?: RequestStatus
-): Promise<VacationRequest[]> {
-    const where = status ? { status } : {};
-    return await requestRepo().find({
-        where,
-        order: { createdAt: "DESC" },
-    });
+    options: GetAllRequestsOptions
+): Promise<PaginatedRequests> {
+    const { status, search, page, pageSize } = options;
+
+    const qb = requestRepo()
+        .createQueryBuilder("request")
+        .leftJoinAndSelect("request.user", "user")
+        .orderBy("request.createdAt", "DESC")
+        .skip((page - 1) * pageSize)
+        .take(pageSize);
+
+    if (status) {
+        qb.andWhere("request.status = :status", { status });
+    }
+
+    if (search) {
+        const needle = `%${search.toLowerCase()}%`;
+        qb.andWhere(
+            "(LOWER(user.name) LIKE :needle OR LOWER(request.reason) LIKE :needle OR LOWER(request.comments) LIKE :needle)",
+            { needle }
+        );
+    }
+
+    const [items, total] = await qb.getManyAndCount();
+    return {
+        items,
+        total,
+        page,
+        pageSize,
+        totalPages: Math.max(1, Math.ceil(total / pageSize)),
+    };
 }
 
 export async function approveRequest(

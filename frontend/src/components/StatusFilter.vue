@@ -1,22 +1,32 @@
 <template>
-  <div class="flex gap-2 flex-wrap">
-    <button
-        v-for="option in options"
-        :key="option.value ?? 'all'"
-        type="button"
-        :class="buttonClasses(option.value)"
-        @click="$emit('update:modelValue', option.value)"
+  <div class="flex items-center gap-2">
+    <label for="status-filter" class="font-medium text-slate-700">
+      Status
+    </label>
+    <select
+        id="status-filter"
+        :value="modelValue ?? ''"
+        class="px-3 py-2 border border-slate-300 rounded text-base bg-white focus:outline-none focus:border-brand"
+        @change="onChange(($event.target as HTMLSelectElement).value)"
     >
-      {{ option.label }}
-    </button>
+      <option
+          v-for="option in options"
+          :key="option.value ?? 'all'"
+          :value="option.value ?? ''"
+      >
+        {{ option.label }}
+      </option>
+    </select>
   </div>
 </template>
 
 <script setup lang="ts">
 import { RequestStatus } from "../types";
 
-const props = defineProps<{ modelValue: RequestStatus | undefined }>();
-defineEmits<{ "update:modelValue": [value: RequestStatus | undefined] }>();
+defineProps<{ modelValue: RequestStatus | undefined }>();
+const emit = defineEmits<{
+  "update:modelValue": [value: RequestStatus | undefined];
+}>();
 
 const options: { label: string; value: RequestStatus | undefined }[] = [
   { label: "All", value: undefined },
@@ -25,10 +35,7 @@ const options: { label: string; value: RequestStatus | undefined }[] = [
   { label: "Rejected", value: RequestStatus.REJECTED },
 ];
 
-function buttonClasses(value: RequestStatus | undefined): string {
-  const base = "px-4 py-2 rounded text-sm font-medium border transition-colors cursor-pointer";
-  return props.modelValue === value
-      ? `${base} bg-slate-900 text-white border-slate-900`
-      : `${base} bg-white text-slate-700 border-slate-300 hover:bg-slate-100`;
+function onChange(value: string) {
+  emit("update:modelValue", value === "" ? undefined : (value as RequestStatus));
 }
 </script>
